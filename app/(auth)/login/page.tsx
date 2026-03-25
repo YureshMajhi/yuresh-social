@@ -19,17 +19,7 @@ const Login = () => {
     return () => unsubscribe();
   }, [router]);
   return (
-    <div className="relative min-h-screen w-full bg-[#fcfaf7] overflow-hidden flex items-center justify-center">
-      <div
-        className="absolute inset-0 z-0 overflow-hidden pointer-events-none"
-        style={{
-          backgroundImage: "url('/login-bg.png')",
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "cover",
-          backgroundPosition: "left",
-        }}
-      />
-
+    <div className="relative min-h-screen w-full overflow-hidden flex items-center justify-center">
       <main className="z-10 w-full max-w-md mx-6 p-10 sm:p-12 flex flex-col items-center justify-between min-h-160 bg-white/50 backdrop-blur-xl rounded-[2.5rem] shadow-[0_8px_32px_rgba(0,0,0,0.04)] border border-white/60">
         <div className="flex flex-col items-center text-center space-y-6 mt-4 w-full">
           <div className="flex flex-col items-center gap-5">
