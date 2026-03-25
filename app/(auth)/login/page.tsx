@@ -1,4 +1,23 @@
+"use client";
+
+import LoginWithGoogleButton from "@/app/components/LoginWithGoogleButton";
+import { auth } from "@/firebase";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+
 const Login = () => {
+  const router = useRouter();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.push("/");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
   return (
     <div className="relative min-h-screen w-full bg-[#fcfaf7] overflow-hidden flex items-center justify-center">
       <div
@@ -28,14 +47,7 @@ const Login = () => {
         </div>
 
         <div className="w-full flex flex-col items-center space-y-8 mt-24 mb-2">
-          <button className="w-full relative flex items-center justify-center gap-4 bg-white hover:bg-slate-50 text-slate-700 text-lg font-medium py-4 px-8 rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_25px_rgba(0,0,0,0.1)] border border-slate-100 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0">
-            <img
-              src="https://www.svgrepo.com/show/475656/google-color.svg"
-              alt="Google"
-              className="w-6 h-6"
-            />
-            <span>Continue with Google</span>
-          </button>
+          <LoginWithGoogleButton />
 
           <div className="flex items-center justify-center gap-6 text-base font-medium text-slate-500 w-full">
             <a href="#" className="hover:text-slate-800 transition-colors">
