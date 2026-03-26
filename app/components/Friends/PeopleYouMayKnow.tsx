@@ -1,27 +1,57 @@
 "use client";
 
-import { User } from "@/app/lib/definitions";
+import { sendFriendRequest } from "@/app/lib/actions/firebaseAuth";
+import { FriendRequests, User } from "@/app/lib/definitions";
 import { auth, db } from "@/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, getDocs, limit, query } from "firebase/firestore";
+import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
 const PeopleYouMayKnow = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [requests, setRequests] = useState<FriendRequests[]>([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const q = query(collection(db, "users"), limit(50));
-        const snapshot = await getDocs(q);
+        const userQuery = query(collection(db, "users"), limit(50));
+        const usersSnapshot = await getDocs(userQuery);
 
-        const data = snapshot.docs.map((doc) => ({
+        const sentQuery = query(
+          collection(db, "friendRequests"),
+          where("from", "==", user.uid),
+          where("status", "==", "requested"),
+        );
+        const receivedQuery = query(
+          collection(db, "friendRequests"),
+          where("to", "==", user.uid),
+          where("status", "==", "requested"),
+        );
+
+        const [sentSnap, receivedSnap] = await Promise.all([
+          getDocs(sentQuery),
+          getDocs(receivedQuery),
+        ]);
+        const myRequests: FriendRequests[] = [
+          ...sentSnap.docs.map((d) => ({
+            id: d.id,
+            ...(d.data() as Omit<FriendRequests, "id">),
+          })),
+          ...receivedSnap.docs.map((d) => ({
+            id: d.id,
+            ...(d.data() as Omit<FriendRequests, "id">),
+          })),
+        ];
+        setRequests(myRequests);
+
+        const userData = usersSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-
-        const filtered = data.filter((u) => u.id !== user.uid);
-
+        const involvedUserIds = new Set(myRequests.flatMap((req) => [req.from, req.to]));
+        const filtered = userData.filter(
+          (u) => u.id !== user.uid && !involvedUserIds.has(u.id),
+        );
         setUsers(filtered);
       }
     });
@@ -63,7 +93,10 @@ const PeopleYouMayKnow = () => {
                     </div>
                   </div>
                 </div>
-                <button className="bg-[#f09b59] hover:bg-[#e68a44] text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-sm">
+                <button
+                  onClick={() => sendFriendRequest(user.id)}
+                  className="bg-[#f09b59] hover:bg-[#e68a44] text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-sm"
+                >
                   Add Friend
                 </button>
               </div>
