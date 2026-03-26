@@ -3,9 +3,10 @@ export type User = {
   name?: string;
   email?: string;
   photoURL?: string;
+  friendRequestStatus?: "Accepted" | "Requested" | "Sent";
 };
 
-export type FriendRequests = {
+export type FriendRequestsType = {
   id: string;
   from: string;
   to: string;
