@@ -2,6 +2,7 @@
 
 import { HomeIcon, LogOutIcon, MessageCircleMore, Users } from "lucide-react";
 import { signout } from "@/lib/actions/firebaseAuth";
+import Link from "next/link";
 
 const NavIcons = () => {
   return (
@@ -13,19 +14,19 @@ const NavIcons = () => {
             Home
           </span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-[#f0714b]">
+        <Link href={"/"} className="flex flex-col items-center gap-1 text-[#f0714b]">
           <MessageCircleMore className="w-6 h-6" />
           <span className="text-xs font-medium">Messages</span>
-        </button>
+        </Link>
 
-        <button className="flex flex-col items-center gap-1 group">
+        <Link href={"/friends"} className="flex flex-col items-center gap-1 group">
           <Users className="w-6 h-6 text-gray-500 group-hover:text-gray-900 transition-colors" />
           <span className="text-xs font-medium text-gray-500 group-hover:text-gray-900 transition-colors">
             Friends
           </span>
-        </button>
+        </Link>
 
-        <button className="flex flex-col items-center gap-1 group">
+        <Link href={"/profile"} className="flex flex-col items-center gap-1 group">
           <img
             src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
             alt="Profile"
@@ -34,9 +35,12 @@ const NavIcons = () => {
           <span className="text-xs font-medium text-gray-500 group-hover:text-gray-900 transition-colors">
             Profile
           </span>
-        </button>
+        </Link>
 
-        <button className="flex flex-col items-center gap-1 group" onClick={signout}>
+        <button
+          className="flex flex-col items-center gap-1 group cursor-pointer"
+          onClick={signout}
+        >
           <LogOutIcon className="w-6 h-6 text-gray-500 group-hover:text-gray-900 transition-colors" />
           <span className="text-xs font-medium text-gray-500 group-hover:text-gray-900 transition-colors">
             Logout

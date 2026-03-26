@@ -1,7 +1,30 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import NavIcons from "@/components/NavIcons";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/firebase";
+import { useRouter } from "next/navigation";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<String | null>("");
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        router.push("/login");
+      } else {
+        setUser(user?.displayName);
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
+
+  if (loading) return <div>Loading</div>;
   return (
     <>
       <div className="h-screen w-screen overflow-hidden bg-[radial-gradient(ellipse_at_bottom_left,var(--tw-gradient-stops))] from-orange-200 via-[#fcf5eb] to-amber-100 text-gray-800 antialiased flex flex-col">
