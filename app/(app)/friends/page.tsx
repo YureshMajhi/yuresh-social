@@ -59,29 +59,35 @@ const Friends = () => {
     const sentQuery = query(
       collection(db, "friendRequests"),
       where("from", "==", currentUser),
-      where("status", "==", "requested"),
     );
 
     const receivedQuery = query(
       collection(db, "friendRequests"),
       where("to", "==", currentUser),
-      where("status", "==", "requested"),
     );
 
-    const unsubscribeSent = onSnapshot(sentQuery, (snapshot) => {
-      const updated = snapshot.docs.map((d) => ({
+    const unsubscribeSent = onSnapshot(sentQuery, (sentSnap) => {
+      const sent = sentSnap.docs.map((d) => ({
         id: d.id,
         ...(d.data() as Omit<FriendRequestsType, "id">),
       }));
-      setRequests((prev) => [...prev.filter((r) => r.from !== currentUser), ...updated]);
+
+      setRequests((prev) => {
+        const received = prev.filter((r) => r.to === currentUser);
+        return [...received, ...sent];
+      });
     });
 
-    const unsubscribeReceived = onSnapshot(receivedQuery, (snapshot) => {
-      const updated = snapshot.docs.map((d) => ({
+    const unsubscribeReceived = onSnapshot(receivedQuery, (receivedSnap) => {
+      const received = receivedSnap.docs.map((d) => ({
         id: d.id,
         ...(d.data() as Omit<FriendRequestsType, "id">),
       }));
-      setRequests((prev) => [...prev.filter((r) => r.to !== currentUser), ...updated]);
+
+      setRequests((prev) => {
+        const sent = prev.filter((r) => r.from === currentUser);
+        return [...sent, ...received];
+      });
     });
 
     return () => {
