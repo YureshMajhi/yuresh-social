@@ -4,11 +4,6 @@ import FriendRequests from "@/app/components/Friends/FriendRequests";
 import PeopleYouMayKnow from "@/app/components/Friends/PeopleYouMayKnow";
 import SearchFriends from "@/app/components/Friends/SearchFriends";
 import { useFriendData } from "@/app/hooks/useFriendData";
-import { FriendRequestsType, User } from "@/app/lib/definitions";
-import { auth, db } from "@/firebase";
-import { onAuthStateChanged } from "firebase/auth";
-import { collection, getDocs, limit, onSnapshot, query, where } from "firebase/firestore";
-import { useEffect, useState } from "react";
 
 const Friends = () => {
   const { requests, currentUser, unknownUsers } = useFriendData();

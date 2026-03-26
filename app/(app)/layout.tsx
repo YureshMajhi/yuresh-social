@@ -35,7 +35,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 y
               </div>
               <h1 className="text-xl tracking-tight font-medium text-gray-900 hidden sm:block">
-                Yuresh Social
+                Hello {user?.split(" ")[0]}
               </h1>
             </div>
 
