@@ -8,6 +8,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
   where,
 } from "firebase/firestore";
 
@@ -104,19 +105,27 @@ export async function acceptFriendRequest(fromUserId: string) {
       where("from", "==", fromUserId),
       where("to", "==", currentUser.uid),
     );
-    const [snap] = await Promise.all([getDocs(q)]);
 
-    if (!snap.empty) {
-      console.log("Invalid request format.");
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      console.log("No request found.");
+      return;
+    }
+
+    // check status before updating
+    const doc = snap.docs[0];
+    const data = doc.data();
+    if (data.status === "accepted") {
+      console.log("Request is already accepted.");
       return;
     }
 
     // Accept request
-    await addDoc(collection(db, "friendRequests"), {
-      to: currentUser.uid,
-      from: fromUserId,
-      status: "requested",
-      createdAt: serverTimestamp(),
+    const docRef = snap.docs[0].ref;
+    await updateDoc(docRef, {
+      status: "accepted",
+      acceptedAt: serverTimestamp(),
     });
     console.log("Friend request accepted");
   } catch (error) {
