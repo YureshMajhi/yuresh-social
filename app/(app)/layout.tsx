@@ -5,6 +5,7 @@ import NavIcons from "@/components/NavIcons";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/firebase";
 import { useRouter } from "next/navigation";
+import { SearchIcon } from "lucide-react";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
@@ -40,10 +41,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             </div>
 
             <div className="flex-1 max-w-xl px-8 hidden md:block relative">
-              <i
-                data-lucide="search"
-                className="absolute left-12 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"
-              ></i>
+              <SearchIcon className="absolute left-12 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search for people, messages, posts..."

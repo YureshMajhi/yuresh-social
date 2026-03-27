@@ -131,6 +131,15 @@ export async function acceptFriendRequest(fromUserId: string) {
       acceptedAt: serverTimestamp(),
     });
     console.log("Friend request accepted");
+
+    await addDoc(collection(db, "conversations"), {
+      users: [fromUserId, currentUser.uid],
+      lastMessage: "",
+      lastTimeStamp: serverTimestamp(),
+      createdAt: serverTimestamp(),
+    });
+
+    console.log("Conversation Created");
   } catch (error) {
     console.log(error);
   }
