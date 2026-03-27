@@ -80,7 +80,9 @@ const SearchFriends = ({ unknownUsers }: { unknownUsers: User[] }) => {
               </div>
               {user.friendRequestStatus !== "done" && (
                 <button
-                  onClick={() => sendFriendRequest(user.id)}
+                  onClick={() => {
+                    if (user.id) sendFriendRequest(user.id);
+                  }}
                   className="bg-[#f09b59] hover:bg-[#e68a44] text-white px-4 py-2 rounded-[0.85rem] text-sm font-medium transition-colors shadow-sm"
                 >
                   Add Friend

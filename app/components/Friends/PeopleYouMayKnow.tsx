@@ -41,7 +41,9 @@ const PeopleYouMayKnow = ({ unknownUsers }: { unknownUsers: User[] }) => {
                   </div>
                 </div>
                 <button
-                  onClick={() => sendFriendRequest(user.id)}
+                  onClick={() => {
+                    if (user.id) sendFriendRequest(user.id);
+                  }}
                   className="bg-[#f09b59] hover:bg-[#e68a44] text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-colors shadow-sm"
                 >
                   Add Friend
