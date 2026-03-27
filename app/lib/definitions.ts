@@ -3,7 +3,7 @@ export type User = {
   name?: string;
   email?: string;
   photoURL?: string;
-  friendRequestStatus?: "accepted" | "requested" | "sent";
+  friendRequestStatus?: "accepted" | "requested" | "sent" | "done" | "none";
 };
 
 export type FriendRequestsType = {

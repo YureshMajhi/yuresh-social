@@ -5,12 +5,14 @@ import {
   collection,
   doc,
   getDocs,
+  orderBy,
   query,
   serverTimestamp,
   setDoc,
   updateDoc,
   where,
 } from "firebase/firestore";
+import { User } from "../definitions";
 
 const provider = new GoogleAuthProvider();
 
@@ -23,6 +25,7 @@ export async function signInWithGoogle() {
       doc(db, "users", user.uid),
       {
         name: user.displayName,
+        name_lowercase: user.displayName?.toLocaleLowerCase(),
         email: user.email,
       },
       { merge: true },
@@ -132,3 +135,46 @@ export async function acceptFriendRequest(fromUserId: string) {
     console.log(error);
   }
 }
+
+export const searchUsersByName = async (searchQuery: string) => {
+  if (!searchQuery) return [];
+
+  const currentUser = auth.currentUser;
+
+  try {
+    const usersRef = collection(db, "users");
+    const friendReqRef = collection(db, "friendRequests");
+
+    const q = query(
+      usersRef,
+      orderBy("name_lowercase"),
+      where("name_lowercase", ">=", searchQuery.toLocaleLowerCase()),
+      where("name_lowercase", "<=", searchQuery.toLocaleLowerCase() + "\uf8ff"),
+    );
+    const snapshot = await getDocs(q);
+
+    const reqQuery = query(friendReqRef, where("from", "==", currentUser?.uid));
+    const reqQuery2 = query(friendReqRef, where("to", "==", currentUser?.uid));
+
+    const [snap1, snap2] = await Promise.all([getDocs(reqQuery), getDocs(reqQuery2)]);
+
+    const excludeIds = new Set<string>();
+    snap1.forEach((doc) => excludeIds.add(doc.data().to));
+    snap2.forEach((doc) => excludeIds.add(doc.data().from));
+
+    const users = snapshot.docs
+      .filter((doc) => doc.id !== currentUser?.uid)
+      .map((doc) => ({
+        id: doc.id,
+        friendRequestStatus: (excludeIds.has(doc.id)
+          ? "done"
+          : "none") as User["friendRequestStatus"],
+        ...doc.data(),
+      }));
+
+    return users;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+};
