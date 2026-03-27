@@ -187,3 +187,25 @@ export const searchUsersByName = async (searchQuery: string) => {
     return [];
   }
 };
+
+export async function fetchUserConversations() {
+  const currentUser = auth.currentUser;
+  if (!currentUser) throw new Error("User not authenticated.");
+
+  try {
+    const conversationRef = collection(db, "conversations");
+
+    const q = query(conversationRef, where("users", "array-contains", currentUser.uid));
+
+    const snap = await getDocs(q);
+    const conversations = snap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return conversations;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}

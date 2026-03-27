@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 export type User = {
   id: string;
   name?: string;
@@ -12,4 +14,12 @@ export type FriendRequestsType = {
   to: string;
   status: "accepted" | "requested";
   createdAt?: any;
+};
+
+export type Conversation = {
+  id?: string;
+  lastMessage?: string;
+  lastTimeStamp?: Timestamp;
+  users?: string[];
+  createdAt?: Timestamp;
 };
