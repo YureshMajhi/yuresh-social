@@ -1,8 +1,8 @@
-import { Conversation } from "@/app/lib/definitions";
+import { Chat } from "@/app/lib/definitions";
 import { SearchIcon, SquarePen } from "lucide-react";
 import ConversationBox from "./ConversationBox";
 
-const Conversations = ({ conversations }: { conversations: Conversation[] }) => {
+const Conversations = ({ conversations }: { conversations: Chat[] }) => {
   return (
     <>
       <aside className="w-85 hidden lg:flex flex-col bg-white/60 backdrop-blur-2xl rounded-3xl shadow-sm border border-white/60 overflow-hidden shrink-0">

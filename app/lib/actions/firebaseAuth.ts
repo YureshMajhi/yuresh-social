@@ -4,7 +4,9 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
   getDocs,
+  limit,
   orderBy,
   query,
   serverTimestamp,
@@ -31,7 +33,7 @@ export async function signInWithGoogle() {
       { merge: true },
     );
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 }
 
@@ -39,7 +41,7 @@ export async function signout() {
   try {
     await signOut(auth);
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 }
 
@@ -84,7 +86,7 @@ export async function sendFriendRequest(toUserId: string) {
     });
     console.log("Friend request sent");
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 }
 
@@ -141,7 +143,7 @@ export async function acceptFriendRequest(fromUserId: string) {
 
     console.log("Conversation Created");
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 }
 
@@ -183,7 +185,7 @@ export const searchUsersByName = async (searchQuery: string) => {
 
     return users;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return [];
   }
 };
@@ -205,7 +207,128 @@ export async function fetchUserConversations() {
 
     return conversations;
   } catch (error) {
-    console.log(error);
+    console.error(error);
+    return [];
+  }
+}
+
+export async function getUserById(userId: string) {
+  try {
+    const userRef = doc(db, "users", userId);
+    const snap = await getDoc(userRef);
+
+    if (!snap.exists()) return null;
+
+    return { id: snap.id, ...snap.data() };
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+export async function getUserByConversationId(conversationId: string) {
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    console.error("User not authenticated.");
+    return null;
+  }
+  try {
+    const conversationRef = doc(db, "conversations", conversationId);
+
+    const snap = await getDoc(conversationRef);
+    if (!snap.exists()) {
+      console.error("Conversation Doesnot exist");
+      return null;
+    }
+
+    const users: string[] = snap.data()?.users || [];
+    const otherUserId = users.find((user) => user !== currentUser.uid);
+    if (!otherUserId) {
+      console.error("User Doesnot exist in conversation");
+      return null;
+    }
+
+    const result = await getUserById(otherUserId);
+    return result;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+export async function sendMessage(conversationId: string, message: string) {
+  if (!conversationId) {
+    throw new Error("Invalid Conversation link.");
+  }
+
+  if (!message) {
+    throw new Error("Empty message.");
+  }
+
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error("User not authenticated.");
+  }
+
+  try {
+    const conversationRef = doc(db, "conversations", conversationId);
+
+    const snap = await getDoc(conversationRef);
+    if (!snap.exists()) {
+      console.log("No conversations found.");
+      return;
+    }
+
+    await addDoc(collection(db, "messages"), {
+      conversationId,
+      from: currentUser.uid,
+      message,
+      createdAt: serverTimestamp(),
+    });
+
+    await updateDoc(conversationRef, {
+      lastMessage: message,
+      lastTimeStamp: serverTimestamp(),
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export async function fetchMessages(conversationId: string) {
+  if (!conversationId) {
+    throw new Error("Invalid Conversation link.");
+  }
+
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error("User not authenticated.");
+  }
+
+  try {
+    const messagesRef = collection(db, "messages");
+
+    const q = query(
+      messagesRef,
+      where("conversationId", "==", conversationId),
+      orderBy("createdAt", "desc"),
+      limit(25),
+    );
+    const snap = await getDocs(q);
+
+    if (snap.empty) return [];
+
+    const messages = snap.docs
+      .map((doc) => ({
+        id: doc.id,
+        ownMessage: doc.data().from === currentUser.uid,
+        ...doc.data(),
+      }))
+      .reverse();
+
+    return messages;
+  } catch (error) {
+    console.error(error);
     return [];
   }
 }
