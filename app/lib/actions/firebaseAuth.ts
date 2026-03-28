@@ -295,40 +295,40 @@ export async function sendMessage(conversationId: string, message: string) {
   }
 }
 
-export async function fetchMessages(conversationId: string) {
-  if (!conversationId) {
-    throw new Error("Invalid Conversation link.");
-  }
+// export async function fetchMessages(conversationId: string) {
+//   if (!conversationId) {
+//     throw new Error("Invalid Conversation link.");
+//   }
 
-  const currentUser = auth.currentUser;
-  if (!currentUser) {
-    throw new Error("User not authenticated.");
-  }
+//   const currentUser = auth.currentUser;
+//   if (!currentUser) {
+//     throw new Error("User not authenticated.");
+//   }
 
-  try {
-    const messagesRef = collection(db, "messages");
+//   try {
+//     const messagesRef = collection(db, "messages");
 
-    const q = query(
-      messagesRef,
-      where("conversationId", "==", conversationId),
-      orderBy("createdAt", "desc"),
-      limit(25),
-    );
-    const snap = await getDocs(q);
+//     const q = query(
+//       messagesRef,
+//       where("conversationId", "==", conversationId),
+//       orderBy("createdAt", "desc"),
+//       limit(25),
+//     );
+//     const snap = await getDocs(q);
 
-    if (snap.empty) return [];
+//     if (snap.empty) return [];
 
-    const messages = snap.docs
-      .map((doc) => ({
-        id: doc.id,
-        ownMessage: doc.data().from === currentUser.uid,
-        ...doc.data(),
-      }))
-      .reverse();
+//     const messages = snap.docs
+//       .map((doc) => ({
+//         id: doc.id,
+//         ownMessage: doc.data().from === currentUser.uid,
+//         ...doc.data(),
+//       }))
+//       .reverse();
 
-    return messages;
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
-}
+//     return messages;
+//   } catch (error) {
+//     console.error(error);
+//     return [];
+//   }
+// }
