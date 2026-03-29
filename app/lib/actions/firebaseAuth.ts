@@ -2,11 +2,12 @@ import { GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import { auth, db } from "@/firebase";
 import {
   addDoc,
+  arrayRemove,
+  arrayUnion,
   collection,
   doc,
   getDoc,
   getDocs,
-  limit,
   orderBy,
   query,
   serverTimestamp,
@@ -14,7 +15,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { Message, Post, User } from "../definitions";
+import { User } from "../definitions";
 
 const provider = new GoogleAuthProvider();
 
@@ -330,35 +331,38 @@ export async function createPost(text: string, imageUrl: string = "") {
   }
 }
 
-export async function getPosts() {
+export async function updatePostLike(postID: string, currentLikedBy: string[]) {
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error("User not authenticated.");
+  }
+  const hasLiked = currentLikedBy.includes(currentUser.uid);
+
+  try {
+    const postRef = doc(db, "posts", postID);
+
+    await updateDoc(postRef, {
+      likes: hasLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid),
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+export async function updatePostComment(postID: string, text: string) {
   const currentUser = auth.currentUser;
   if (!currentUser) {
     throw new Error("User not authenticated.");
   }
 
+  const newComment = { user: currentUser.uid, text };
+
   try {
-    const postsQuery = query(
-      collection(db, "posts"),
-      orderBy("createdAt", "desc"),
-      limit(4),
-    );
-
-    const snap = await getDocs(postsQuery);
-
-    if (snap.empty) {
-      console.log("No request found.");
-      return [];
-    }
-
-    return snap.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        ...data,
-      } as Post;
+    const postRef = doc(db, "posts", postID);
+    await updateDoc(postRef, {
+      comments: arrayUnion(newComment),
     });
   } catch (error) {
     console.log(error);
-    return [];
   }
 }

@@ -8,14 +8,22 @@ import {
   UploadIcon,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { storage } from "@/firebase";
-import { createPost, getPosts } from "../lib/actions/firebaseAuth";
+import { auth, storage } from "@/firebase";
+import {
+  createPost,
+  updatePostComment,
+  updatePostLike,
+} from "../lib/actions/firebaseAuth";
 import Spinner from "../components/Spinner";
-import { Post } from "../lib/definitions";
+import { usePostsData } from "../hooks/usePostsData";
 
 export default function Home() {
+  const currentUser = auth.currentUser;
+
+  const { posts } = usePostsData();
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [uploadPost, setUploadPost] = useState({
@@ -23,17 +31,7 @@ export default function Home() {
     imageUrl: "",
     onProgress: false,
   });
-  const [posts, setPosts] = useState<Post[]>([]);
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      const result = await getPosts();
-
-      if (result) setPosts(result);
-    };
-
-    fetchPosts();
-  }, []);
+  const [commentsTexts, setCommentTexts] = useState<Record<string, string>>({});
 
   const uploadClick = () => {
     if (!fileInputRef.current) {
@@ -91,6 +89,22 @@ export default function Home() {
     await createPost(uploadPost.text, uploadPost.imageUrl);
 
     setUploadPost({ text: "", imageUrl: "", onProgress: false });
+  };
+
+  const handleAddComments = async (postId: string) => {
+    const text = commentsTexts[postId];
+    if (!text?.trim()) return;
+
+    try {
+      await updatePostComment(postId, text);
+
+      setCommentTexts((prev) => ({
+        ...prev,
+        [postId]: "",
+      }));
+    } catch (error) {
+      console.error("Failed to add comment:", error);
+    }
   };
 
   return (
@@ -204,14 +218,55 @@ export default function Home() {
 
               <div className="flex items-center gap-5 bg-gray-50/80 border border-gray-100/80 rounded-full px-5 py-3 text-base text-gray-500 w-full mt-1">
                 <div className="flex items-center gap-2 cursor-pointer group">
-                  <HeartIcon className="w-4.5 h-4.5 text-[#f6895b] fill-[#f6895b] group-hover:scale-110 transition-transform" />
-                  <span className="font-medium">25 Likes</span>
+                  <HeartIcon
+                    className={`w-4.5 h-4.5 text-[#f6895b] ${post.likes?.includes(currentUser?.uid.toString() ?? "") && "fill-[#f6895b]"} group-hover:scale-110 transition-transform`}
+                  />
+                  <span
+                    className="font-medium"
+                    onClick={() => updatePostLike(post.id, post.likes ?? [])}
+                  >
+                    {post.likes ? post.likes.length : "0"} Likes
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 cursor-pointer group">
                   <MessageCircle className="w-4.5 h-4.5 group-hover:text-gray-700 transition-colors" />
-                  <span className="font-medium">8 Comments</span>
+                  <span className="font-medium">
+                    {post.comments ? post.comments.length : "0"} Comments
+                  </span>
                 </div>
               </div>
+              {post.comments &&
+                post.comments.map((comment) => (
+                  <div
+                    key={post.id + comment.text}
+                    className="flex flex-col gap-4 px-2 mt-2"
+                  >
+                    <div className="flex gap-3 items-start w-full">
+                      <img
+                        src="https://i.pravatar.cc/150?img=32"
+                        alt="David"
+                        className="w-8 h-8 rounded-full object-cover shrink-0 mt-1"
+                      />
+                      <div className="flex flex-col gap-1 min-w-0">
+                        <div className="bg-gray-50/80 border border-gray-100/80 rounded-[1.25rem] rounded-tl-sm px-4 py-2.5">
+                          <span className="text-sm font-medium text-gray-900 mr-1">
+                            David
+                          </span>
+                          <span className="text-sm text-gray-700">{comment.text}</span>
+                        </div>
+                        <div className="flex items-center gap-3 px-2 text-xs text-gray-500 font-medium">
+                          <span className="text-gray-400 font-normal">1h ago</span>
+                          <button className="hover:text-gray-900 transition-colors">
+                            Like
+                          </button>
+                          <button className="hover:text-gray-900 transition-colors">
+                            Reply
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
 
               <div className="flex items-center gap-3 bg-gray-50/80 border border-gray-100/80 rounded-full p-1.5 w-full transition-colors focus-within:bg-white focus-within:border-gray-200">
                 <img
@@ -223,8 +278,25 @@ export default function Home() {
                   type="text"
                   placeholder="Write a comment..."
                   className="flex-1 bg-transparent text-base outline-none placeholder:text-gray-400 min-w-0 px-2"
+                  value={commentsTexts[post.id] || ""}
+                  onChange={(e) =>
+                    setCommentTexts((prev) => ({
+                      ...prev,
+                      [post.id]: e.target.value, // Only update this specific post's text
+                    }))
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleAddComments(post.id);
+                    }
+                  }}
                 />
-                <button className="bg-[#f6895b] hover:bg-[#e47648] w-9 h-9 rounded-full flex items-center justify-center text-white shrink-0 transition-colors shadow-sm">
+                <button
+                  onClick={() => {
+                    handleAddComments(post.id);
+                  }}
+                  className="bg-[#f6895b] hover:bg-[#e47648] w-9 h-9 rounded-full flex items-center justify-center text-white shrink-0 transition-colors shadow-sm"
+                >
                   <SendIcon className="w-4 h-4 -ml-0.5 mt-0.5" />
                 </button>
               </div>

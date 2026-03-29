@@ -41,6 +41,7 @@ export type Message = {
 type comment = {
   user: string;
   text: string;
+  createdAt: Timestamp;
 };
 
 export type Post = {
