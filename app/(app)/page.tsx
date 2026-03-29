@@ -32,9 +32,7 @@ export default function Home() {
       if (result) setPosts(result);
     };
 
-    return () => {
-      fetchPosts();
-    };
+    fetchPosts();
   }, []);
 
   const uploadClick = () => {
