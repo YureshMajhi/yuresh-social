@@ -12,5 +12,8 @@
         "supportEmail": "yureshmee@gmail.com"
       }
     }
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

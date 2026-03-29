@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// Allow users to read files, but only authenticated users can upload
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read: if true; 
+      allow write: if request.auth != null;
+    }
+  }
+}
