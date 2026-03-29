@@ -37,3 +37,18 @@ export type Message = {
   ownMessage?: boolean;
   imageUrl?: string;
 };
+
+type comment = {
+  user: string;
+  text: string;
+};
+
+export type Post = {
+  id: string;
+  from: string;
+  caption?: string;
+  imageUrl?: string;
+  likes?: string[];
+  comments?: comment[];
+  createdAt: Timestamp;
+};

@@ -14,7 +14,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { Message, User } from "../definitions";
+import { Message, Post, User } from "../definitions";
 
 const provider = new GoogleAuthProvider();
 
@@ -302,40 +302,63 @@ export async function sendMessage(
   }
 }
 
-// export async function fetchMessages(conversationId: string) {
-//   if (!conversationId) {
-//     throw new Error("Invalid Conversation link.");
-//   }
+export async function createPost(text: string, imageUrl: string = "") {
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error("User not authenticated.");
+  }
 
-//   const currentUser = auth.currentUser;
-//   if (!currentUser) {
-//     throw new Error("User not authenticated.");
-//   }
+  if (!imageUrl) {
+    if (!text) {
+      throw new Error("Empty Post.");
+    }
+  }
 
-//   try {
-//     const messagesRef = collection(db, "messages");
+  try {
+    await addDoc(collection(db, "posts"), {
+      from: currentUser.uid,
+      caption: text || "",
+      imageUrl: imageUrl || "",
+      createdAt: serverTimestamp(),
+    });
+    console.log("post created");
 
-//     const q = query(
-//       messagesRef,
-//       where("conversationId", "==", conversationId),
-//       orderBy("createdAt", "desc"),
-//       limit(25),
-//     );
-//     const snap = await getDocs(q);
+    return "OK";
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+}
 
-//     if (snap.empty) return [];
+export async function getPosts() {
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error("User not authenticated.");
+  }
 
-//     const messages = snap.docs
-//       .map((doc) => ({
-//         id: doc.id,
-//         ownMessage: doc.data().from === currentUser.uid,
-//         ...doc.data(),
-//       }))
-//       .reverse();
+  try {
+    const postsQuery = query(
+      collection(db, "posts"),
+      orderBy("createdAt", "desc"),
+      limit(4),
+    );
 
-//     return messages;
-//   } catch (error) {
-//     console.error(error);
-//     return [];
-//   }
-// }
+    const snap = await getDocs(postsQuery);
+
+    if (snap.empty) {
+      console.log("No request found.");
+      return [];
+    }
+
+    return snap.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+      } as Post;
+    });
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+}
