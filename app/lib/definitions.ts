@@ -35,4 +35,5 @@ export type Message = {
   createdAt?: Timestamp;
   message?: string;
   ownMessage?: boolean;
+  imageUrl?: string;
 };

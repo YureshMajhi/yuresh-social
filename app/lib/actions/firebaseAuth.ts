@@ -14,7 +14,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { User } from "../definitions";
+import { Message, User } from "../definitions";
 
 const provider = new GoogleAuthProvider();
 
@@ -256,13 +256,19 @@ export async function getUserByConversationId(conversationId: string) {
   }
 }
 
-export async function sendMessage(conversationId: string, message: string) {
+export async function sendMessage(
+  conversationId: string,
+  message: string,
+  imageUrl: string,
+) {
   if (!conversationId) {
     throw new Error("Invalid Conversation link.");
   }
 
-  if (!message) {
-    throw new Error("Empty message.");
+  if (!imageUrl) {
+    if (!message) {
+      throw new Error("Empty message.");
+    }
   }
 
   const currentUser = auth.currentUser;
@@ -283,6 +289,7 @@ export async function sendMessage(conversationId: string, message: string) {
       conversationId,
       from: currentUser.uid,
       message,
+      imageUrl: imageUrl || "",
       createdAt: serverTimestamp(),
     });
 
