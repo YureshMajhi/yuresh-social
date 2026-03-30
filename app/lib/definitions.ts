@@ -54,6 +54,8 @@ export type Message = {
 
 type comment = {
   user: string;
+  userName?: string;
+  photoURL?: string;
   text: string;
   createdAt: Timestamp;
 };
@@ -66,4 +68,6 @@ export type Post = {
   likes?: string[];
   comments?: comment[];
   createdAt: Timestamp;
+  photoURL?: string;
+  username?: string;
 };

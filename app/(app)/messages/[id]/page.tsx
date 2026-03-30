@@ -4,10 +4,15 @@ import ConversationHeader from "@/app/components/Messages/ConversationHeader";
 import TypeMessage from "@/app/components/Messages/TypeMessage";
 import ShowImage from "@/app/components/ShowImage";
 import { getMessagesData } from "@/app/hooks/getMessagesData";
+import { getUserData } from "@/app/hooks/getUserData";
+import { auth } from "@/firebase";
 import { Timestamp } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
 
 const Messages = () => {
+  const currentUser = auth.currentUser;
+  const { user } = getUserData(currentUser?.uid || "");
+
   const { otherUser, messages } = getMessagesData();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -43,7 +48,11 @@ const Messages = () => {
             className={`flex items-end gap-3 max-w-[80%] ${message.ownMessage && "self-end flex-row-reverse"}`}
           >
             <img
-              src="https://i.pravatar.cc/150?img=11"
+              src={
+                message.ownMessage
+                  ? user?.photoURL || "/no-image.png"
+                  : otherUser?.photoURL || "/no-image.png"
+              }
               alt="Me"
               className="w-10 h-10 rounded-full object-cover shrink-0 mb-5"
             />

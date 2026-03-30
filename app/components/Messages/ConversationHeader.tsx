@@ -7,7 +7,7 @@ const ConversationHeader = ({ otherUser }: { otherUser: User | null }) => {
       <header className="px-6 py-4 flex items-center justify-between border-b border-white/40 bg-white/20 shrink-0 z-10">
         <div className="flex items-center gap-4">
           <img
-            src="https://i.pravatar.cc/150?img=47"
+            src={otherUser?.photoURL || "/no-image.png"}
             alt="Sophie"
             className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow-sm"
           />

@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Post } from "../lib/definitions";
+import { Post, User } from "../lib/definitions";
 import { collection, limit, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "@/firebase";
+import { getUserById } from "../lib/actions/firebaseAuth";
 
 export const usePostsData = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -18,14 +19,25 @@ export const usePostsData = () => {
         limit(8),
       );
 
-      onSnapshot(postQuery, (snapshot) => {
+      onSnapshot(postQuery, async (snapshot) => {
         if (isInitial) {
           const initialPosts = snapshot.docs.map((d) => ({
             id: d.id,
             ...d.data(),
           })) as Post[];
 
-          setPosts(initialPosts);
+          const postsWithUserData = await Promise.all(
+            initialPosts.map(async (post) => {
+              const userData = (await getUserById(post.from)) as any;
+              return {
+                ...post,
+                photoURL: userData?.photoURL || "",
+                username: userData?.updatedName || userData?.name,
+              };
+            }),
+          );
+
+          setPosts(postsWithUserData);
           isInitial = false;
           return;
         }
@@ -67,6 +79,42 @@ export const usePostsData = () => {
 
     getLatestPost();
   }, []);
+
+  useEffect(() => {
+    if (posts.length === 0) return;
+
+    const needsUpdate = posts.some((post) => post.comments?.some((c) => !c.userName));
+
+    if (!needsUpdate) return;
+
+    const updateComments = async () => {
+      const updatedPosts = await Promise.all(
+        posts.map(async (post) => {
+          if (!post.comments) return post;
+
+          const updatedComments = await Promise.all(
+            post.comments.map(async (comment) => {
+              if (comment.userName) return comment;
+
+              const userData = (await getUserById(comment.user)) as User;
+
+              return {
+                ...comment,
+                userName: userData?.updatedName || userData.name,
+                photoURL: userData?.photoURL || "",
+              };
+            }),
+          );
+
+          return { ...post, comments: updatedComments };
+        }),
+      );
+
+      setPosts(updatedPosts);
+    };
+
+    updateComments();
+  }, [posts]);
 
   return { posts };
 };

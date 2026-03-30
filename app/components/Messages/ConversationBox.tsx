@@ -19,7 +19,7 @@ const ConversationBox = ({ conversations }: { conversations: Chat[] }) => {
               className={`flex items-center gap-4 p-3 rounded-2xl ${convo.id === id ? "bg-white/80 shadow-sm cursor-pointer border border-white/50" : "hover:bg-white/70 cursor-pointer transition-colors border border-transparent"}`}
             >
               <img
-                src="https://i.pravatar.cc/150?img=47"
+                src={convo?.photoURL || "/no-image.png"}
                 alt="Sophie"
                 className="w-12 h-12 rounded-full object-cover"
               />

@@ -18,9 +18,14 @@ import {
 } from "../lib/actions/firebaseAuth";
 import Spinner from "../components/Spinner";
 import { usePostsData } from "../hooks/usePostsData";
+import { getUserData } from "../hooks/getUserData";
 
 export default function Home() {
   const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error("User not authenticated.");
+  }
+  const { user } = getUserData(currentUser.uid || "");
 
   const { posts } = usePostsData();
 
@@ -113,7 +118,7 @@ export default function Home() {
         <div className="w-full bg-white/80 backdrop-blur-xl rounded-3xl p-3 shadow-sm border border-white/60 gap-3 flex flex-col">
           <div className="flex items-center gap-3">
             <img
-              src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
+              src={user?.photoURL || "/no-image.png"}
               alt="Profile"
               className="w-10 h-10 rounded-full object-cover ml-1"
             />
@@ -183,12 +188,14 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <img
-                    src="https://i.pravatar.cc/150?img=47"
-                    alt="Sophie"
+                    src={post.photoURL || "/no-image.png"}
+                    alt={post.photoURL}
                     className="w-11 h-11 rounded-full object-cover shadow-sm"
                   />
                   <div className="flex flex-col">
-                    <span className="text-base font-medium text-gray-900">Sophie</span>
+                    <span className="text-base font-medium text-gray-900">
+                      {post?.username || ""}
+                    </span>
                     <span className="text-sm text-gray-400">2h ago</span>
                   </div>
                 </div>
@@ -243,14 +250,14 @@ export default function Home() {
                   >
                     <div className="flex gap-3 items-start w-full">
                       <img
-                        src="https://i.pravatar.cc/150?img=32"
-                        alt="David"
+                        src={comment.photoURL || "/no-image.png"}
+                        alt={comment.photoURL}
                         className="w-8 h-8 rounded-full object-cover shrink-0 mt-1"
                       />
                       <div className="flex flex-col gap-1 min-w-0">
                         <div className="bg-gray-50/80 border border-gray-100/80 rounded-[1.25rem] rounded-tl-sm px-4 py-2.5">
                           <span className="text-sm font-medium text-gray-900 mr-1">
-                            David
+                            {comment.userName || ""}
                           </span>
                           <span className="text-sm text-gray-700">{comment.text}</span>
                         </div>
@@ -270,7 +277,7 @@ export default function Home() {
 
               <div className="flex items-center gap-3 bg-gray-50/80 border border-gray-100/80 rounded-full p-1.5 w-full transition-colors focus-within:bg-white focus-within:border-gray-200">
                 <img
-                  src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
+                  src={user?.photoURL || "/no-image.png"}
                   alt="User"
                   className="w-9 h-9 rounded-full ml-1 object-cover"
                 />
