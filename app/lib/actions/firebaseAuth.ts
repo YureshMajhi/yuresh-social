@@ -15,7 +15,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { User } from "../definitions";
+import { UpdatedUserDetails, User } from "../definitions";
 
 const provider = new GoogleAuthProvider();
 
@@ -254,6 +254,30 @@ export async function getUserByConversationId(conversationId: string) {
   } catch (error) {
     console.error(error);
     return null;
+  }
+}
+
+export async function updateUser(updatedUserDetails: UpdatedUserDetails) {
+  const currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    throw new Error("User not authenticated.");
+  }
+
+  try {
+    const userRef = doc(db, "users", currentUser.uid);
+
+    const dataToSave: any = { ...updatedUserDetails };
+
+    if (dataToSave.updatedName) {
+      dataToSave.name_lowercase = dataToSave.updatedName.toLowerCase();
+    }
+
+    await updateDoc(userRef, dataToSave);
+
+    console.log("Profile updated with field: updatedName");
+  } catch (error) {
+    console.error("Update failed:", error);
   }
 }
 

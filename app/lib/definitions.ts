@@ -6,6 +6,20 @@ export type User = {
   email?: string;
   photoURL?: string;
   friendRequestStatus?: "accepted" | "requested" | "sent" | "done" | "none";
+  updatedName?: string;
+  username?: string;
+  bio?: string;
+  location?: string;
+  name_lowercase?: string;
+};
+
+export type UpdatedUserDetails = {
+  updatedName?: string;
+  username?: string;
+  bio?: string;
+  location?: string;
+  photoURL?: string;
+  name_lowercase?: string;
 };
 
 export type FriendRequestsType = {

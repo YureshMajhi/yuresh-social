@@ -4,13 +4,18 @@ import { HomeIcon, LogOutIcon, MessageCircleMore, Users } from "lucide-react";
 import { signout } from "@/lib/actions/firebaseAuth";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getUserData } from "../hooks/getUserData";
+import { auth } from "@/firebase";
 
 const NavIcons = () => {
+  const currentUser = auth.currentUser;
   const pathname = usePathname();
 
   const selectedPage = (path: string) => {
     return pathname === path ? "text-[#f0714b]" : "";
   };
+
+  const { user } = getUserData(currentUser?.uid || "");
 
   return (
     <>
@@ -43,13 +48,11 @@ const NavIcons = () => {
           className={`flex flex-col items-center gap-1 group ${selectedPage("/profile")}`}
         >
           <img
-            src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
+            src={user?.photoURL ? user.photoURL : "/no-image.png"}
             alt="Profile"
-            className="w-6 h-6 rounded-full border border-gray-200"
+            className="w-6 h-6 rounded-full border border-gray-200 object-cover"
           />
-          <span className="text-xs font-medium text-gray-500 group-hover:text-gray-900 transition-colors">
-            Profile
-          </span>
+          <span className="text-xs font-medium ">Profile</span>
         </Link>
 
         <button
